@@ -1,0 +1,87 @@
+.about-section {
+  padding: 8rem 0;
+  background-color: var(--bg-primary);
+}
+
+.about-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5rem;
+  align-items: center;
+}
+
+.about-image {
+  height: 600px;
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.about-img-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, var(--bg-tertiary), rgba(255,255,255,0.05));
+  /* We will replace this with an actual image via background-image later or an IMG tag */
+}
+
+.section-title {
+  font-size: clamp(2rem, 4vw, 3rem);
+  margin-bottom: 1.5rem;
+}
+
+.about-desc {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  line-height: 1.7;
+  margin-bottom: 3rem;
+}
+
+.about-features {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+.feature-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  flex-shrink: 0;
+  border: 1px solid var(--glass-border);
+}
+
+.feature-text h4 {
+  font-size: 1.2rem;
+  font-family: var(--font-sans);
+  margin-bottom: 0.3rem;
+}
+
+.feature-text p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+@media (max-width: 968px) {
+  .about-grid {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+  .about-image {
+    height: 400px;
+    order: 2; /* Put image below text on mobile */
+  }
+  .about-content {
+    order: 1;
+  }
+}

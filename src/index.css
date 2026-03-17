@@ -1,0 +1,89 @@
+:root {
+  /* Core Colors (Pinwheelent Brand) */
+  --bg-primary: #0b1437;
+  --bg-secondary: #132454;
+  --bg-tertiary: #1b3273;
+  
+  --text-primary: #ffffff;
+  --text-secondary: #add8e6; /* light blue */
+  
+  --accent: #F2C230; /* Yellow from pinwheel (pops well on blue) */
+  --accent-hover: #ffffff; 
+  --accent-alt: #E33845; /* Red from pinwheel */
+  --accent-purple: #9B5D97; /* Purple from pinwheel */
+  
+  --border-color: rgba(255, 255, 255, 0.15);
+  --glass-bg: rgba(11, 20, 55, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.1);
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-display: 'Outfit', var(--font-sans);
+  
+  /* Layout */
+  --max-width: 1400px;
+  --nav-height: 80px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+button {
+  font-family: var(--font-sans);
+  border: none;
+  cursor: pointer;
+  background: none;
+}
+
+/* Utilities */
+.container {
+  width: 100%;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 1rem;
+  }
+}
+
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+}
+
+.text-gradient {
+  background: linear-gradient(to right, #ffffff, #a1a1aa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

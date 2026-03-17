@@ -1,0 +1,42 @@
+[
+  {
+    "id": "auto-expo-nexus",
+    "title": "Nexus Auto Showcase 2024",
+    "category": "Automotive",
+    "image": "/src/assets/nexus_auto_showcase_1773736774146.png",
+    "challenge": "Create an immersive, high-traffic stall that allows attendees to experience a new electric vehicle model in both physical and virtual space.",
+    "solution": "We designed a multi-level stall featuring a revolving main stage for the vehicle, flanked by touch-interactive screens providing specs. A dedicated VR zone allowed users to test drive the car virtually. We used sleek, reflective materials to match the futuristic branding.",
+    "features": ["Rotating Main Platform", "VR Test Drive Zone", "Interactive Touch Kiosks", "Dynamic LED Lighting System"],
+    "stats": "Over 10,000 footfalls across 3 days"
+  },
+  {
+    "id": "tech-summit-horizon",
+    "title": "Horizon Cloud Technologies",
+    "category": "Technology & SaaS",
+    "image": "/src/assets/tech_summit_horizon_1773736799787.png",
+    "challenge": "Stand out at a massive tech summit with a limited footprint, while clearly communicating complex cloud architecture solutions.",
+    "solution": "We went vertical, building a two-story structure with a striking LED mesh facade that displayed real-time data flows. The ground floor hosted quick meetings, while the upper deck served as a VIP presentation lounge.",
+    "features": ["LED Mesh Facade", "Two-Story Structure", "VIP Presentation Deck", "Acoustic Insulation for Meetings"],
+    "stats": "Generated 400+ qualified leads"
+  },
+  {
+    "id": "pharma-bio-health",
+    "title": "BioHealth Innovators Expo",
+    "category": "Pharmaceutical",
+    "image": "/src/assets/pharma_bio_health_1773737014887.png",
+    "challenge": "Design a clean, clinical, yet welcoming environment that facilitated private discussions while showcasing new medical equipment.",
+    "solution": "We utilized a pristine white color palette with soft, organic curves inspired by cellular structures. Semi-private pods with frosted glass partitions allowed for confidential B2B meetings without feeling closed off from the event energy.",
+    "features": ["Curved Architecture", "Frosted Glass Pods", "Product Display Pedestals", "Ambient Scent Marketing"],
+    "stats": "Hosted 45 successful B2B negotiations"
+  },
+  {
+    "id": "lifestyle-urban-home",
+    "title": "Urban Home Decor Fair",
+    "category": "Lifestyle & Retail",
+    "image": "/src/assets/lifestyle_urban_home_1773737260910.png",
+    "challenge": "Simulate a luxury living room environment within a busy trade hall to showcase premium furniture collections.",
+    "solution": "We constructed enclosed room sets with custom lighting rigs to mimic natural daylight. Hidden structural supports allowed for an open-plan feel while maintaining distinct functional zones for living, dining, and outdoor collections.",
+    "features": ["Simulated Daylight Lighting", "Room Set Construction", "Premium Material Finishes", "Interactive Material Library"],
+    "stats": "Won 'Best Large Stand Design' award"
+  }
+]
