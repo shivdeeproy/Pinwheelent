@@ -271,17 +271,21 @@ const AdminDashboard = () => {
 
       if (imageFile) {
         try {
+          if (!isFirebaseAvailable()) throw new Error('Offline');
           const imageRef = ref(storage, `works/${Date.now()}_hero_${imageFile.name}`);
-          await uploadBytes(imageRef, imageFile);
-          imageUrl = await getDownloadURL(imageRef);
+          await withTimeout(uploadBytes(imageRef, imageFile));
+          imageUrl = await withTimeout(getDownloadURL(imageRef));
           for (let i = 0; i < additionalImageFiles.length; i++) {
             const file = additionalImageFiles[i];
             const fileRef = ref(storage, `works/additional/${Date.now()}_${i}_${file.name}`);
-            await uploadBytes(fileRef, file);
-            additionalImageUrls.push(await getDownloadURL(fileRef));
+            await withTimeout(uploadBytes(fileRef, file));
+            additionalImageUrls.push(await withTimeout(getDownloadURL(fileRef)));
           }
         } catch (_) {
           imageUrl = URL.createObjectURL(imageFile);
+          for (let i = 0; i < additionalImageFiles.length; i++) {
+            additionalImageUrls.push(URL.createObjectURL(additionalImageFiles[i]));
+          }
         }
       }
 

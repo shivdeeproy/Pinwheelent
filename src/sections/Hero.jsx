@@ -1,6 +1,7 @@
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import './Hero.css';
+import heroVisualImg from '../assets/hero.png';
 
 const Hero = () => {
   const { scrollY } = useScroll();
@@ -74,11 +75,8 @@ const Hero = () => {
           transition={{ delay: 0.5, duration: 1 }}
           style={{ y: visualY }}
         >
-          {/* Abstract geometric representation of a stall */}
-          <div className="abstract-stall glass-panel">
-            <div className="stall-element-1"></div>
-            <div className="stall-element-2"></div>
-            <div className="stall-element-3"></div>
+          <div className="hero-image-container glass-panel">
+            <img src={heroVisualImg} alt="Pinwheel Expo Stall" className="hero-img" />
           </div>
         </motion.div>
       </div>
