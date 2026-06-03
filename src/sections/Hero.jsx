@@ -75,7 +75,7 @@ const Hero = () => {
           transition={{ delay: 0.5, duration: 1 }}
           style={{ y: visualY }}
         >
-          <div className="hero-image-container glass-panel">
+          <div className="hero-image-container glass-panel float-element">
             <img src={heroVisualImg} alt="Pinwheel Expo Stall" className="hero-img" />
           </div>
         </motion.div>

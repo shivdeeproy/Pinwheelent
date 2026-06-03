@@ -87,3 +87,100 @@ button {
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+/* Floating Back to Top Button */
+.back-to-top {
+  position: fixed;
+  bottom: 2.5rem;
+  right: 2.5rem;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+  z-index: 99;
+  outline: none;
+  transition: border-color 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
+}
+
+.back-to-top:hover {
+  border-color: var(--text-primary);
+  background-color: rgba(255, 255, 255, 0.05);
+  transform: translateY(-4px);
+}
+
+/* Global Scroll Progress Bar */
+.scroll-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--accent) 0%, var(--accent-alt) 50%, var(--accent-purple) 100%);
+  z-index: 1100;
+  transform-origin: 0%;
+}
+
+/* Floating Animation keyframes */
+@keyframes float {
+  0% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(0.5deg);
+  }
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+}
+
+.float-element {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Backdrop Mesh Glow Elements */
+.mesh-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.mesh-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  pointer-events: none;
+  opacity: 0.12;
+  z-index: 0;
+}
+
+.mesh-glow-violet {
+  background: radial-gradient(circle, var(--accent-purple) 0%, rgba(0,0,0,0) 70%);
+  width: 45vw;
+  height: 45vw;
+}
+
+.mesh-glow-gold {
+  background: radial-gradient(circle, var(--accent) 0%, rgba(0,0,0,0) 70%);
+  width: 35vw;
+  height: 35vw;
+}
+
+.mesh-glow-indigo {
+  background: radial-gradient(circle, var(--bg-terctiary, #283675) 0%, rgba(0,0,0,0) 70%);
+  width: 50vw;
+  height: 50vw;
+}
+
+/* Global Premium Input Focus overrides */
+input:focus, textarea:focus, select:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 15px rgba(242, 194, 48, 0.2);
+  background-color: rgba(255, 255, 255, 0.05);
+}

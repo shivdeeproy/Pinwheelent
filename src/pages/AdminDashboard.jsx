@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { auth, db, storage } from '../firebase';
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
-import { collection, addDoc, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Plus, Trash2, Image as ImageIcon, AlertTriangle } from 'lucide-react';
+import { LogOut, Plus, Trash2, Edit2, Image as ImageIcon, AlertTriangle } from 'lucide-react';
 import { toast } from 'react-toastify';
 import './AdminDashboard.css';
 
@@ -68,43 +68,6 @@ const ConfirmModal = ({ message, onConfirm, onCancel }) => (
   </div>
 );
 
-/* ─── Helpers ────────────────────────────────────────────────── */
-const SAMPLE_WORKS = [
-  {
-    id: 'cyber-security-expo-2025',
-    title: 'Cyber Security Expo 2025',
-    category: 'Technology',
-    challenge: 'The client needed a booth that looked futuristic and highly secure to reflect their cybersecurity brand.',
-    solution: 'We built a 40x40 custom stall featuring LED neon accents, a glass-enclosed meeting room, and interactive touch screens.',
-    stats: 'Attracted 5,000+ visitors. Won "Most Creative Stall".',
-    features: ['Custom LED lighting', 'Glass meeting room', 'Interactive displays'],
-    image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1170&q=80',
-    additionalImages: ['https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=1112&q=80']
-  },
-  {
-    id: 'eco-living-summit-2024',
-    title: 'Eco Living Summit 2024',
-    category: 'Sustainability',
-    challenge: 'Create a completely sustainable and recyclable exhibition stand for an eco-friendly brand.',
-    solution: 'Utilized reclaimed wood, recycled cardboard tubes, and living moss walls to create an organic, earthy feel.',
-    stats: 'Generated 200+ qualified leads. 100% recyclable materials.',
-    features: ['Living moss wall', 'Reclaimed wood structure', 'Recyclable materials'],
-    image: 'https://images.unsplash.com/photo-1497250681960-ef046c08a56e?auto=format&fit=crop&w=687&q=80',
-    additionalImages: []
-  },
-  {
-    id: 'auto-expo-premium-booth',
-    title: 'Auto Expo Premium Booth',
-    category: 'Automotive',
-    challenge: 'Showcase a new luxury electric vehicle with a high-end, minimalist aesthetic.',
-    solution: 'Designed a sleek, dark-themed pavilion with overhead circular lighting trusses to highlight the vehicle curves.',
-    stats: 'Featured in 5+ automotive magazines.',
-    features: ['Overhead circular lighting', 'Minimalist design', 'Premium flooring'],
-    image: 'https://images.unsplash.com/photo-1570125909232-eb263c188f7e?auto=format&fit=crop&w=1471&q=80',
-    additionalImages: ['https://images.unsplash.com/photo-1553440569-bcc63803a83d?auto=format&fit=crop&w=1425&q=80']
-  }
-];
-
 /* ─── Main Component ─────────────────────────────────────────── */
 const AdminDashboard = () => {
   const [user, setUser] = useState(null);
@@ -115,6 +78,13 @@ const AdminDashboard = () => {
 
   const [works, setWorks] = useState([]);
   const [isAddingProject, setIsAddingProject] = useState(false);
+  const [editingProjectDocId, setEditingProjectDocId] = useState(null);
+
+  const [clients, setClients] = useState([]);
+  const [isAddingClient, setIsAddingClient] = useState(false);
+  const [editingClientDocId, setEditingClientDocId] = useState(null);
+  const [newClient, setNewClient] = useState({ name: '' });
+  const [clientLogoFile, setClientLogoFile] = useState(null);
 
   // Confirm modal state
   const [confirmModal, setConfirmModal] = useState(null); // { message, onConfirm }
@@ -127,6 +97,54 @@ const AdminDashboard = () => {
 
   const navigate = useNavigate();
 
+  const startEdit = (project) => {
+    setEditingProjectDocId(project.docId);
+    setNewProject({
+      id: project.id || '',
+      title: project.title || '',
+      category: project.category || '',
+      challenge: project.challenge || '',
+      solution: project.solution || '',
+      stats: project.stats || '',
+      features: project.features && project.features.length > 0 ? project.features : [''],
+      image: project.image || '',
+      additionalImages: project.additionalImages || []
+    });
+    setImageFile(null);
+    setAdditionalImageFiles([]);
+    setIsAddingProject(true);
+  };
+
+  const toggleAddForm = () => {
+    if (isAddingProject) {
+      setIsAddingProject(false);
+      setEditingProjectDocId(null);
+      setNewProject({ title: '', category: '', challenge: '', solution: '', stats: '', features: [''] });
+      setImageFile(null);
+      setAdditionalImageFiles([]);
+    } else {
+      setIsAddingProject(true);
+    }
+  };
+
+  const startEditClient = (client) => {
+    setEditingClientDocId(client.docId);
+    setNewClient({ name: client.name || '' });
+    setClientLogoFile(null);
+    setIsAddingClient(true);
+  };
+
+  const toggleAddClientForm = () => {
+    if (isAddingClient) {
+      setIsAddingClient(false);
+      setEditingClientDocId(null);
+      setNewClient({ name: '' });
+      setClientLogoFile(null);
+    } else {
+      setIsAddingClient(true);
+    }
+  };
+
   /* ── Auth ── */
   useEffect(() => {
     const localAdmin = localStorage.getItem('adminUser');
@@ -134,6 +152,7 @@ const AdminDashboard = () => {
       setUser(JSON.parse(localAdmin));
       setAuthLoading(false);
       fetchWorks();
+      fetchClients();
       return;
     }
 
@@ -142,7 +161,10 @@ const AdminDashboard = () => {
       clearTimeout(timeoutId);
       setUser(currentUser);
       setAuthLoading(false);
-      if (currentUser) fetchWorks();
+      if (currentUser) {
+        fetchWorks();
+        fetchClients();
+      }
     });
     return () => { clearTimeout(timeoutId); unsubscribe(); };
   }, []);
@@ -155,16 +177,138 @@ const AdminDashboard = () => {
         if (!querySnapshot.empty) {
           const worksData = querySnapshot.docs.map(d => ({ docId: d.id, ...d.data() }));
           setWorks(worksData);
-          // Also sync to localStorage for offline use
           localStorage.setItem('localWorks', JSON.stringify(worksData));
           return;
         }
-      } catch (_) { /* Firebase unavailable, fall through */ }
+      } catch (_) { /* Firebase unavailable */ }
     }
 
-    // Fallback: load from localStorage
     const cached = localStorage.getItem('localWorks');
     if (cached) setWorks(JSON.parse(cached));
+  };
+
+  /* ── Fetch clients (Firestore + localStorage fallback) ── */
+  const fetchClients = async () => {
+    if (isFirebaseAvailable()) {
+      try {
+        const querySnapshot = await withTimeout(getDocs(collection(db, 'clients')));
+        if (!querySnapshot.empty) {
+          const clientsData = querySnapshot.docs.map(d => ({ docId: d.id, ...d.data() }));
+          setClients(clientsData);
+          localStorage.setItem('localClients', JSON.stringify(clientsData));
+          return;
+        }
+      } catch (_) { /* Firebase unavailable */ }
+    }
+
+    const cached = localStorage.getItem('localClients');
+    if (cached) setClients(JSON.parse(cached));
+  };
+
+  /* ── Add or Update client logo ── */
+  const handleAddClient = async (e) => {
+    e.preventDefault();
+    if (!newClient.name || (!clientLogoFile && !editingClientDocId)) {
+      toast.warning('Client name and logo are required!');
+      return;
+    }
+
+    setActionLoading(true);
+    try {
+      const clientId = newClient.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+      let logoUrl = '';
+
+      if (editingClientDocId) {
+        const match = clients.find(c => c.docId === editingClientDocId);
+        logoUrl = match ? match.logo : '';
+      }
+
+      if (clientLogoFile) {
+        try {
+          if (!isFirebaseAvailable()) throw new Error('Offline');
+          const logoRef = ref(storage, `clients/${Date.now()}_${clientLogoFile.name}`);
+          await withTimeout(uploadBytes(logoRef, clientLogoFile));
+          logoUrl = await withTimeout(getDownloadURL(logoRef));
+        } catch (_) {
+          logoUrl = URL.createObjectURL(clientLogoFile);
+        }
+      }
+
+      const clientData = {
+        id: clientId,
+        name: newClient.name,
+        logo: logoUrl,
+        updatedAt: new Date().toISOString()
+      };
+
+      if (editingClientDocId) {
+        // UPDATE
+        let savedToFirebase = false;
+        if (isFirebaseAvailable() && !editingClientDocId.startsWith('local-')) {
+          try {
+            await withTimeout(updateDoc(doc(db, 'clients', editingClientDocId), clientData));
+            savedToFirebase = true;
+          } catch (_) { }
+        }
+
+        if (!savedToFirebase) {
+          const existing = JSON.parse(localStorage.getItem('localClients') || '[]');
+          const updated = existing.map(c => c.docId === editingClientDocId ? { ...c, ...clientData } : c);
+          localStorage.setItem('localClients', JSON.stringify(updated));
+        }
+        toast.success('Client logo updated successfully!');
+      } else {
+        // CREATE
+        const newClientData = { ...clientData, createdAt: new Date().toISOString() };
+        let savedToFirebase = false;
+        if (isFirebaseAvailable()) {
+          try {
+            await withTimeout(addDoc(collection(db, 'clients'), newClientData));
+            savedToFirebase = true;
+          } catch (_) { }
+        }
+
+        if (!savedToFirebase) {
+          const existing = JSON.parse(localStorage.getItem('localClients') || '[]');
+          existing.push({ ...newClientData, docId: `local-${clientId}` });
+          localStorage.setItem('localClients', JSON.stringify(existing));
+        }
+        toast.success('Client logo added successfully!');
+      }
+
+      setIsAddingClient(false);
+      setEditingClientDocId(null);
+      setNewClient({ name: '' });
+      setClientLogoFile(null);
+      fetchClients();
+    } catch (error) {
+      console.error('Error saving client:', error);
+      toast.error('Failed to save client logo');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  /* ── Delete client logo ── */
+  const handleDeleteClient = (docId) => {
+    setConfirmModal({
+      message: 'Are you sure you want to delete this client logo?',
+      onConfirm: async () => {
+        setConfirmModal(null);
+        try {
+          if (docId.startsWith('local-')) {
+            const existing = JSON.parse(localStorage.getItem('localClients') || '[]');
+            localStorage.setItem('localClients', JSON.stringify(existing.filter(c => c.docId !== docId)));
+          } else {
+            await deleteDoc(doc(db, 'clients', docId));
+          }
+          toast.success('Client logo deleted');
+          fetchClients();
+        } catch (error) {
+          toast.error('Error deleting client logo');
+        }
+      }
+    });
   };
 
   /* ── Login ── */
@@ -179,6 +323,7 @@ const AdminDashboard = () => {
       localStorage.setItem('adminUser', JSON.stringify(adminUser));
       toast.success('Logged in successfully');
       fetchWorks();
+      fetchClients();
       return;
     }
     try {
@@ -205,55 +350,7 @@ const AdminDashboard = () => {
   };
   const addFeatureField = () => setNewProject({ ...newProject, features: [...newProject.features, ''] });
 
-  /* ── Seed dummy data ── */
-  const runSeed = async () => {
-    setConfirmModal(null);
-    setActionLoading(true);
-    try {
-      let usedFirebase = false;
-
-      if (isFirebaseAvailable()) {
-        try {
-          for (const proj of SAMPLE_WORKS) {
-            await withTimeout(
-              addDoc(collection(db, 'works'), { ...proj, createdAt: new Date().toISOString() })
-            );
-          }
-          usedFirebase = true;
-        } catch (_) {
-          // Firebase timed out — fall through to localStorage
-        }
-      }
-
-      if (!usedFirebase) {
-        // Save to localStorage
-        const existing = JSON.parse(localStorage.getItem('localWorks') || '[]');
-        // Avoid duplicates by id
-        const existingIds = new Set(existing.map(w => w.id));
-        const toAdd = SAMPLE_WORKS
-          .filter(p => !existingIds.has(p.id))
-          .map(p => ({ ...p, docId: `local-${p.id}`, createdAt: new Date().toISOString() }));
-        if (toAdd.length === 0) {
-          toast.info('Dummy data already exists!');
-          setActionLoading(false);
-          return;
-        }
-        localStorage.setItem('localWorks', JSON.stringify([...existing, ...toAdd]));
-        toast.success(`Seeded ${toAdd.length} projects locally!`);
-      } else {
-        toast.success('Seed data inserted to Firebase!');
-      }
-
-      fetchWorks();
-    } catch (e) {
-      console.error('Seed error:', e);
-      toast.error('Seed failed: ' + e.message);
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  /* ── Add project ── */
+  /* ── Add or Update project ── */
   const handleAddProject = async (e) => {
     e.preventDefault();
     if (!newProject.title || !newProject.category) {
@@ -263,11 +360,11 @@ const AdminDashboard = () => {
 
     setActionLoading(true);
     try {
-      const projectId = newProject.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+      const projectId = newProject.id || newProject.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
       const cleanFeatures = newProject.features.filter(f => f.trim() !== '');
 
-      let imageUrl = '';
-      const additionalImageUrls = [];
+      let imageUrl = newProject.image || '';
+      const additionalImageUrls = [...(newProject.additionalImages || [])];
 
       if (imageFile) {
         try {
@@ -275,6 +372,14 @@ const AdminDashboard = () => {
           const imageRef = ref(storage, `works/${Date.now()}_hero_${imageFile.name}`);
           await withTimeout(uploadBytes(imageRef, imageFile));
           imageUrl = await withTimeout(getDownloadURL(imageRef));
+        } catch (_) {
+          imageUrl = URL.createObjectURL(imageFile);
+        }
+      }
+
+      if (additionalImageFiles.length > 0) {
+        try {
+          if (!isFirebaseAvailable()) throw new Error('Offline');
           for (let i = 0; i < additionalImageFiles.length; i++) {
             const file = additionalImageFiles[i];
             const fileRef = ref(storage, `works/additional/${Date.now()}_${i}_${file.name}`);
@@ -282,7 +387,6 @@ const AdminDashboard = () => {
             additionalImageUrls.push(await withTimeout(getDownloadURL(fileRef)));
           }
         } catch (_) {
-          imageUrl = URL.createObjectURL(imageFile);
           for (let i = 0; i < additionalImageFiles.length; i++) {
             additionalImageUrls.push(URL.createObjectURL(additionalImageFiles[i]));
           }
@@ -299,34 +403,51 @@ const AdminDashboard = () => {
         features: cleanFeatures,
         image: imageUrl,
         additionalImages: additionalImageUrls,
-        createdAt: new Date().toISOString()
+        updatedAt: new Date().toISOString()
       };
 
-      let savedToFirebase = false;
-      if (isFirebaseAvailable()) {
-        try {
-          await withTimeout(addDoc(collection(db, 'works'), projectData));
-          savedToFirebase = true;
-        } catch (_) {
-          // Firebase timed out — fall through
+      if (editingProjectDocId) {
+        let savedToFirebase = false;
+        if (isFirebaseAvailable() && !editingProjectDocId.startsWith('local-')) {
+          try {
+            await withTimeout(updateDoc(doc(db, 'works', editingProjectDocId), projectData));
+            savedToFirebase = true;
+          } catch (_) { }
         }
+
+        if (!savedToFirebase) {
+          const existing = JSON.parse(localStorage.getItem('localWorks') || '[]');
+          const updated = existing.map(w => w.docId === editingProjectDocId ? { ...w, ...projectData } : w);
+          localStorage.setItem('localWorks', JSON.stringify(updated));
+        }
+        toast.success('Project updated successfully!');
+      } else {
+        const newProjectData = { ...projectData, createdAt: new Date().toISOString() };
+        let savedToFirebase = false;
+        if (isFirebaseAvailable()) {
+          try {
+            await withTimeout(addDoc(collection(db, 'works'), newProjectData));
+            savedToFirebase = true;
+          } catch (_) { }
+        }
+
+        if (!savedToFirebase) {
+          const existing = JSON.parse(localStorage.getItem('localWorks') || '[]');
+          existing.push({ ...newProjectData, docId: `local-${projectId}` });
+          localStorage.setItem('localWorks', JSON.stringify(existing));
+        }
+        toast.success('Project added successfully!');
       }
 
-      if (!savedToFirebase) {
-        const existing = JSON.parse(localStorage.getItem('localWorks') || '[]');
-        existing.push({ ...projectData, docId: `local-${projectId}` });
-        localStorage.setItem('localWorks', JSON.stringify(existing));
-      }
-
-      toast.success('Project added successfully!');
       setIsAddingProject(false);
+      setEditingProjectDocId(null);
       setNewProject({ title: '', category: '', challenge: '', solution: '', stats: '', features: [''] });
       setImageFile(null);
       setAdditionalImageFiles([]);
       fetchWorks();
     } catch (error) {
-      console.error('Error adding project:', error);
-      toast.error('Failed to add project');
+      console.error('Error saving project:', error);
+      toast.error('Failed to save project');
     } finally {
       setActionLoading(false);
     }
@@ -342,13 +463,11 @@ const AdminDashboard = () => {
           if (docId.startsWith('local-')) {
             const existing = JSON.parse(localStorage.getItem('localWorks') || '[]');
             localStorage.setItem('localWorks', JSON.stringify(existing.filter(w => w.docId !== docId)));
-            toast.success('Project deleted');
-            fetchWorks();
           } else {
             await deleteDoc(doc(db, 'works', docId));
-            toast.success('Project deleted');
-            fetchWorks();
           }
+          toast.success('Project deleted');
+          fetchWorks();
         } catch (error) {
           toast.error('Error deleting project');
         }
@@ -356,7 +475,6 @@ const AdminDashboard = () => {
     });
   };
 
-  /* ── Render guards ── */
   if (authLoading) return <div className="admin-loading">Loading...</div>;
 
   if (!user) {
@@ -378,10 +496,8 @@ const AdminDashboard = () => {
     );
   }
 
-  /* ── Dashboard ── */
   return (
     <div className="admin-dashboard">
-      {/* Custom Confirm Modal */}
       {confirmModal && (
         <ConfirmModal
           message={confirmModal.message}
@@ -402,30 +518,14 @@ const AdminDashboard = () => {
       <main className="container admin-main">
         <div className="admin-actions">
           <h3>Manage Portfolio</h3>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button
-              className="btn-primary"
-              onClick={() => setIsAddingProject(!isAddingProject)}
-            >
-              {isAddingProject ? 'Cancel' : <><Plus size={18} /> Add New Project</>}
-            </button>
-            <button
-              id="seed-dummy-data-btn"
-              className="btn-secondary"
-              disabled={actionLoading}
-              onClick={() => setConfirmModal({
-                message: 'Add 3 example demo projects to the portfolio?',
-                onConfirm: runSeed
-              })}
-            >
-              {actionLoading ? 'Seeding...' : 'Seed Dummy Data'}
-            </button>
-          </div>
+          <button className="btn-primary" onClick={toggleAddForm}>
+            {isAddingProject ? 'Cancel' : <><Plus size={18} /> Add New Project</>}
+          </button>
         </div>
 
         {isAddingProject && (
           <form className="admin-add-form glass-panel" onSubmit={handleAddProject}>
-            <h4>Create New Project</h4>
+            <h4>{editingProjectDocId ? 'Edit Project' : 'Create New Project'}</h4>
             <div className="form-row">
               <div className="form-group half">
                 <label>Project Title *</label>
@@ -438,7 +538,7 @@ const AdminDashboard = () => {
             </div>
 
             <div className="form-group">
-              <label>Hero Image</label>
+              <label>Hero Image {editingProjectDocId && '(Leave empty to keep existing)'}</label>
               <div className="file-upload-wrapper">
                 <ImageIcon size={20} />
                 <input type="file" accept="image/*" onChange={e => setImageFile(e.target.files[0])} />
@@ -451,7 +551,6 @@ const AdminDashboard = () => {
                 <ImageIcon size={20} />
                 <input type="file" accept="image/*" multiple onChange={e => setAdditionalImageFiles(Array.from(e.target.files))} />
               </div>
-              {additionalImageFiles.length > 0 && <small>{additionalImageFiles.length} file(s) selected</small>}
             </div>
 
             <div className="form-group">
@@ -485,27 +584,83 @@ const AdminDashboard = () => {
             </div>
 
             <button type="submit" className="btn-primary" disabled={actionLoading}>
-              {actionLoading ? 'Uploading...' : 'Publish Project'}
+              {actionLoading ? 'Saving...' : (editingProjectDocId ? 'Update Project' : 'Publish Project')}
             </button>
           </form>
         )}
 
         <div className="admin-project-list">
-          {works.length === 0 ? (
-            <p>No projects uploaded yet.</p>
-          ) : (
-            works.map(work => (
-              <div key={work.docId} className="admin-project-card glass-panel">
-                <div className="admin-project-info">
-                  {work.image && <img src={work.image} alt={work.title} className="admin-thumb" />}
-                  <div>
-                    <h4>{work.title}</h4>
-                    <span className="admin-category">{work.category}</span>
-                  </div>
+          {works.map(work => (
+            <div key={work.docId} className="admin-project-card glass-panel">
+              <div className="admin-project-info">
+                {work.image && <img src={work.image} alt={work.title} className="admin-thumb" />}
+                <div>
+                  <h4>{work.title}</h4>
+                  <span className="admin-category">{work.category}</span>
                 </div>
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button onClick={() => startEdit(work)} className="btn-edit-inline" style={{ color: 'var(--text-secondary)', padding: '8px', cursor: 'pointer', background: 'transparent', border: 'none' }} title="Edit Project">
+                  <Edit2 size={18} />
+                </button>
                 <button onClick={() => handleDelete(work.docId)} className="btn-delete" title="Delete Project">
                   <Trash2 size={18} />
                 </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Client Logos Section ── */}
+        <hr style={{ border: 'none', borderTop: '1px solid var(--glass-border)', margin: '4rem 0' }} />
+
+        <div className="admin-actions" style={{ marginTop: '2rem' }}>
+          <h3>Manage Client Logos</h3>
+          <button className="btn-primary" onClick={toggleAddClientForm}>
+            {isAddingClient ? 'Cancel' : <><Plus size={18} /> Add New Logo</>}
+          </button>
+        </div>
+
+        {isAddingClient && (
+          <form className="admin-add-form glass-panel" onSubmit={handleAddClient} style={{ marginTop: '2rem' }}>
+            <h4>{editingClientDocId ? 'Edit Client Logo' : 'Add Client Logo'}</h4>
+            <div className="form-group">
+              <label>Client / Brand Name *</label>
+              <input type="text" value={newClient.name} onChange={e => setNewClient({ name: e.target.value })} placeholder="e.g. Google, Tesla" required />
+            </div>
+
+            <div className="form-group">
+              <label>Logo Image File {editingClientDocId ? '(Leave empty to keep existing)' : '*'}</label>
+              <div className="file-upload-wrapper">
+                <ImageIcon size={20} />
+                <input type="file" accept="image/*" onChange={e => setClientLogoFile(e.target.files[0])} required={!editingClientDocId} />
+              </div>
+            </div>
+
+            <button type="submit" className="btn-primary" disabled={actionLoading}>
+              {actionLoading ? 'Saving...' : (editingClientDocId ? 'Update Logo' : 'Publish Logo')}
+            </button>
+          </form>
+        )}
+
+        <div className="admin-project-list" style={{ marginTop: '2rem' }}>
+          {clients.length === 0 ? (
+            <p>No client logos uploaded yet.</p>
+          ) : (
+            clients.map(client => (
+              <div key={client.docId} className="admin-project-card glass-panel" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div className="admin-project-info" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  {client.logo && <img src={client.logo} alt={client.name} style={{ width: '80px', height: '40px', objectFit: 'contain', background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: '4px' }} />}
+                  <h4>{client.name}</h4>
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button onClick={() => startEditClient(client)} className="btn-edit-inline" style={{ color: 'var(--text-secondary)', padding: '8px', cursor: 'pointer', background: 'transparent', border: 'none' }} title="Edit Logo">
+                    <Edit2 size={18} />
+                  </button>
+                  <button onClick={() => handleDeleteClient(client.docId)} className="btn-delete" title="Delete Logo">
+                    <Trash2 size={18} />
+                  </button>
+                </div>
               </div>
             ))
           )}

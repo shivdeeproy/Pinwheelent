@@ -1,0 +1,143 @@
+.clients-section {
+  padding: 6rem 0;
+  background-color: var(--bg-primary);
+  overflow: hidden;
+  position: relative;
+}
+
+.clients-section .section-title {
+  font-size: clamp(2rem, 3.5vw, 2.75rem);
+  text-align: center;
+  margin-bottom: 0.75rem;
+}
+
+.clients-section .section-subtitle {
+  color: var(--text-secondary);
+  text-align: center;
+  margin-bottom: 4rem;
+  font-size: 1.05rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Infinite Marquee Track Styles */
+.marquee-wrapper {
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  position: relative;
+  padding: 1rem 0;
+}
+
+/* Shadow masks at the edges to fade logos smoothly in and out */
+.marquee-wrapper::before,
+.marquee-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 200px;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.marquee-wrapper::before {
+  left: 0;
+  background: linear-gradient(to right, var(--bg-primary) 0%, rgba(11, 20, 55, 0) 100%);
+}
+
+.marquee-wrapper::after {
+  right: 0;
+  background: linear-gradient(to left, var(--bg-primary) 0%, rgba(11, 20, 55, 0) 100%);
+}
+
+.marquee-track {
+  display: flex;
+  gap: 2rem;
+  width: max-content;
+  animation: scroll-marquee 30s linear infinite;
+}
+
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+
+.marquee-item {
+  width: 220px;
+  height: 110px;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.8rem 1.2rem;
+  flex-shrink: 0;
+  gap: 0.5rem;
+  transition: border-color 0.3s ease, transform 0.3s ease;
+}
+
+.marquee-item:hover {
+  border-color: var(--text-primary);
+  transform: translateY(-3px);
+}
+
+.client-logo-img {
+  max-width: 100%;
+  max-height: 40px;
+  object-fit: contain;
+  filter: grayscale(1) brightness(0.85);
+  opacity: 0.75;
+  transition: all 0.3s ease;
+}
+
+.marquee-item:hover .client-logo-img {
+  filter: grayscale(0) brightness(1);
+  opacity: 1;
+}
+
+.client-name-text {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-align: center;
+  letter-spacing: 0.5px;
+  opacity: 0.8;
+  transition: color 0.3s ease, opacity 0.3s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.marquee-item:hover .client-name-text {
+  color: var(--text-primary);
+  opacity: 1;
+}
+
+/* Animations */
+@keyframes scroll-marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    /* Translate by exactly 1/3 of the total content width to align with duplicated lists */
+    transform: translateX(calc(-33.333% - 0.667rem));
+  }
+}
+
+@media (max-width: 768px) {
+  .clients-section {
+    padding: 4rem 0;
+  }
+  .marquee-wrapper::before,
+  .marquee-wrapper::after {
+    width: 100px;
+  }
+  .marquee-item {
+    width: 180px;
+    height: 85px;
+    border-radius: 12px;
+  }
+}

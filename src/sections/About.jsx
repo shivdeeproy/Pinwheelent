@@ -1,5 +1,6 @@
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Target, Lightbulb, PenTool } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import './About.css';
 
 const About = () => {
@@ -59,6 +60,32 @@ const About = () => {
             </div>
           </motion.div>
         </div>
+
+        {/* Founder Spotlight Card */}
+        <motion.div 
+          className="founder-spotlight glass-panel"
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-50px" }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+        >
+          <div className="founder-avatar-container">
+            <div className="founder-avatar-placeholder">
+              <span>SR</span>
+            </div>
+          </div>
+          <div className="founder-spotlight-content">
+            <span className="founder-label">The Visionary</span>
+            <h3 className="founder-name">Shivdeep Roy</h3>
+            <p className="founder-title">Founder & Principal Designer</p>
+            <p className="founder-quote">
+              "We don't just build structures; we craft three-dimensional narratives that translate brand values into tangible, memorable exhibition experiences."
+            </p>
+            <Link to="/founder" className="founder-btn">
+              Explore Founder Portfolio →
+            </Link>
+          </div>
+        </motion.div>
       </div>
     </section>
   );

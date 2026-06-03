@@ -1,5 +1,5 @@
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { Layers, Cuboid, MonitorPlay, Zap } from 'lucide-react';
+import { Layers, Cuboid, MonitorPlay, Zap, Contact, BookOpen, Image, Gift } from 'lucide-react';
 import './Services.css';
 
 const services = [
@@ -22,6 +22,26 @@ const services = [
     icon: <Zap size={32} />,
     title: 'Turnkey Execution',
     desc: 'End-to-end project management from initial 3D rendering to on-site installation and dismantling.'
+  },
+  {
+    icon: <Contact size={32} />,
+    title: 'Corporate Identity & Stationery',
+    desc: 'Professional visiting cards, letterheads, envelopes, and official I-cards (ID cards) to standardize your corporate representation.'
+  },
+  {
+    icon: <BookOpen size={32} />,
+    title: 'Marketing Collaterals',
+    desc: 'High-quality brochure printing, detailed product catalogues, flyers, and pamphlets to present your offerings.'
+  },
+  {
+    icon: <Image size={32} />,
+    title: 'Large Format & Flex Printing',
+    desc: 'Vibrant flex banners, vinyl backdrops, rollup standees, and custom signages designed for maximum visibility.'
+  },
+  {
+    icon: <Gift size={32} />,
+    title: 'Custom Branding & Merchandise',
+    desc: 'Personalized corporate gifting, promotional items, custom apparel, and other tailored branding accessories.'
   }
 ];
 
