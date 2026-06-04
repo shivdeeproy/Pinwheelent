@@ -37,7 +37,7 @@ const Navbar = () => {
         {/* Desktop Nav */}
         <Link to="/" className="nav-logo">
           {/* Using light logo for dark theme by default */}
-          <img src={logo} alt="Pinwheel Enterprise" style={{ height: '40px', width: 'auto' }} />
+          <img src={logo} alt="Pinwheel Enterprise" style={{ height: '60px', width: 'auto' }} />
         </Link>
         <div className="nav-links desktop-only">
           <Link to="/" onClick={() => handleNavClick('hero')} className="nav-link">Home</Link>
