@@ -147,15 +147,6 @@ const AdminDashboard = () => {
 
   /* ── Auth ── */
   useEffect(() => {
-    const localAdmin = localStorage.getItem('adminUser');
-    if (localAdmin) {
-      setUser(JSON.parse(localAdmin));
-      setAuthLoading(false);
-      fetchWorks();
-      fetchClients();
-      return;
-    }
-
     const timeoutId = setTimeout(() => setAuthLoading(false), 5000);
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       clearTimeout(timeoutId);
@@ -314,18 +305,6 @@ const AdminDashboard = () => {
   /* ── Login ── */
   const handleLogin = async (e) => {
     e.preventDefault();
-    const envUser = import.meta.env.VITE_ADMIN_USERNAME || 'admin';
-    const envPass = import.meta.env.VITE_ADMIN_PASSWORD || 'admin123';
-    
-    if (username === envUser && password === envPass) {
-      const adminUser = { uid: 'admin', username: envUser };
-      setUser(adminUser);
-      localStorage.setItem('adminUser', JSON.stringify(adminUser));
-      toast.success('Logged in successfully');
-      fetchWorks();
-      fetchClients();
-      return;
-    }
     try {
       await signInWithEmailAndPassword(auth, username, password);
       toast.success('Logged in successfully');
@@ -336,7 +315,6 @@ const AdminDashboard = () => {
 
   /* ── Logout ── */
   const handleLogout = async () => {
-    localStorage.removeItem('adminUser');
     await signOut(auth).catch(() => {});
     setUser(null);
     navigate('/');
