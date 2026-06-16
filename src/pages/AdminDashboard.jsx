@@ -86,6 +86,14 @@ const AdminDashboard = () => {
   const [newClient, setNewClient] = useState({ name: '' });
   const [clientLogoFile, setClientLogoFile] = useState(null);
 
+  // Review states
+  const [reviews, setReviews] = useState([]);
+  const [isAddingReview, setIsAddingReview] = useState(false);
+  const [editingReviewDocId, setEditingReviewDocId] = useState(null);
+  const [newReview, setNewReview] = useState({
+    type: 'written', authorName: '', company: '', rating: 5, text: '', url: ''
+  });
+
   // Confirm modal state
   const [confirmModal, setConfirmModal] = useState(null); // { message, onConfirm }
 
@@ -155,6 +163,7 @@ const AdminDashboard = () => {
       if (currentUser) {
         fetchWorks();
         fetchClients();
+        fetchReviews();
       }
     });
     return () => { clearTimeout(timeoutId); unsubscribe(); };
@@ -297,6 +306,139 @@ const AdminDashboard = () => {
           fetchClients();
         } catch (error) {
           toast.error('Error deleting client logo');
+        }
+      }
+    });
+  };
+
+  /* ── Fetch reviews (Firestore + localStorage fallback) ── */
+  const fetchReviews = async () => {
+    if (isFirebaseAvailable()) {
+      try {
+        const querySnapshot = await withTimeout(getDocs(collection(db, 'reviews')));
+        const reviewsData = querySnapshot.docs.map(d => ({ docId: d.id, ...d.data() }));
+        setReviews(reviewsData);
+        localStorage.setItem('localReviews', JSON.stringify(reviewsData));
+        return;
+      } catch (_) { /* Firebase unavailable */ }
+    }
+
+    const cached = localStorage.getItem('localReviews');
+    if (cached) setReviews(JSON.parse(cached));
+  };
+
+  const startEditReview = (review) => {
+    setEditingReviewDocId(review.docId);
+    setNewReview({
+      type: review.type || 'written',
+      authorName: review.authorName || '',
+      company: review.company || '',
+      rating: review.rating || 5,
+      text: review.text || '',
+      url: review.url || ''
+    });
+    setIsAddingReview(true);
+  };
+
+  const toggleAddReviewForm = () => {
+    if (isAddingReview) {
+      setIsAddingReview(false);
+      setEditingReviewDocId(null);
+      setNewReview({ type: 'written', authorName: '', company: '', rating: 5, text: '', url: '' });
+    } else {
+      setIsAddingReview(true);
+    }
+  };
+
+  /* ── Add or Update review ── */
+  const handleAddReview = async (e) => {
+    e.preventDefault();
+    if (!newReview.authorName || !newReview.text) {
+      toast.warning('Author name and review text are required!');
+      return;
+    }
+    if (newReview.type === 'link' && !newReview.url) {
+      toast.warning('Review URL is required for link reviews!');
+      return;
+    }
+
+    setActionLoading(true);
+    try {
+      const reviewId = editingReviewDocId || `review-${Date.now()}`;
+      const reviewData = {
+        type: newReview.type,
+        authorName: newReview.authorName,
+        company: newReview.company,
+        rating: Number(newReview.rating) || 5,
+        text: newReview.text,
+        url: newReview.type === 'link' ? newReview.url : '',
+        updatedAt: new Date().toISOString()
+      };
+
+      if (editingReviewDocId) {
+        // UPDATE
+        let savedToFirebase = false;
+        if (isFirebaseAvailable() && !editingReviewDocId.startsWith('local-')) {
+          try {
+            await withTimeout(updateDoc(doc(db, 'reviews', editingReviewDocId), reviewData));
+            savedToFirebase = true;
+          } catch (_) { }
+        }
+
+        if (!savedToFirebase) {
+          const existing = JSON.parse(localStorage.getItem('localReviews') || '[]');
+          const updated = existing.map(r => r.docId === editingReviewDocId ? { ...r, ...reviewData } : r);
+          localStorage.setItem('localReviews', JSON.stringify(updated));
+        }
+        toast.success('Review updated successfully!');
+      } else {
+        // CREATE
+        const newReviewData = { ...reviewData, createdAt: new Date().toISOString() };
+        let savedToFirebase = false;
+        if (isFirebaseAvailable()) {
+          try {
+            await withTimeout(addDoc(collection(db, 'reviews'), newReviewData));
+            savedToFirebase = true;
+          } catch (_) { }
+        }
+
+        if (!savedToFirebase) {
+          const existing = JSON.parse(localStorage.getItem('localReviews') || '[]');
+          existing.push({ ...newReviewData, docId: `local-${reviewId}` });
+          localStorage.setItem('localReviews', JSON.stringify(existing));
+        }
+        toast.success('Review added successfully!');
+      }
+
+      setIsAddingReview(false);
+      setEditingReviewDocId(null);
+      setNewReview({ type: 'written', authorName: '', company: '', rating: 5, text: '', url: '' });
+      fetchReviews();
+    } catch (error) {
+      console.error('Error saving review:', error);
+      toast.error('Failed to save review');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  /* ── Delete review ── */
+  const handleDeleteReview = (docId) => {
+    setConfirmModal({
+      message: 'Are you sure you want to delete this review?',
+      onConfirm: async () => {
+        setConfirmModal(null);
+        try {
+          if (docId.startsWith('local-')) {
+            const existing = JSON.parse(localStorage.getItem('localReviews') || '[]');
+            localStorage.setItem('localReviews', JSON.stringify(existing.filter(r => r.docId !== docId)));
+          } else {
+            await deleteDoc(doc(db, 'reviews', docId));
+          }
+          toast.success('Review deleted');
+          fetchReviews();
+        } catch (error) {
+          toast.error('Error deleting review');
         }
       }
     });
@@ -636,6 +778,152 @@ const AdminDashboard = () => {
                     <Edit2 size={18} />
                   </button>
                   <button onClick={() => handleDeleteClient(client.docId)} className="btn-delete" title="Delete Logo">
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* ── Client Reviews & Testimonials Section ── */}
+        <hr style={{ border: 'none', borderTop: '1px solid var(--glass-border)', margin: '4rem 0' }} />
+
+        <div className="admin-actions" style={{ marginTop: '2rem' }}>
+          <h3>Manage Client Reviews & Testimonials</h3>
+          <button className="btn-primary" onClick={toggleAddReviewForm}>
+            {isAddingReview ? 'Cancel' : <><Plus size={18} /> Add New Review</>}
+          </button>
+        </div>
+
+        {isAddingReview && (
+          <form className="admin-add-form glass-panel" onSubmit={handleAddReview} style={{ marginTop: '2rem' }}>
+            <h4>{editingReviewDocId ? 'Edit Review / Testimonial' : 'Add Review / Testimonial'}</h4>
+            
+            <div className="form-group">
+              <label>Review Type *</label>
+              <select 
+                value={newReview.type} 
+                onChange={e => setNewReview({ ...newReview, type: e.target.value })}
+                style={{ 
+                  width: '100%', 
+                  padding: '0.8rem 1rem', 
+                  borderRadius: '8px', 
+                  background: 'var(--bg-secondary)', 
+                  border: '1px solid var(--border-color)', 
+                  color: 'var(--text-primary)' 
+                }}
+              >
+                <option value="written">Written Testimonial (Display Text directly)</option>
+                <option value="link">Google Review Link (Button to view external Review)</option>
+              </select>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group half">
+                <label>Author / Client Name *</label>
+                <input 
+                  type="text" 
+                  value={newReview.authorName} 
+                  onChange={e => setNewReview({ ...newReview, authorName: e.target.value })} 
+                  placeholder="e.g. Abhishek Sharma" 
+                  required 
+                />
+              </div>
+              <div className="form-group half">
+                <label>Company / Designation (Optional)</label>
+                <input 
+                  type="text" 
+                  value={newReview.company} 
+                  onChange={e => setNewReview({ ...newReview, company: e.target.value })} 
+                  placeholder="e.g. Taskar Group" 
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>Rating (Stars) *</label>
+              <select 
+                value={newReview.rating} 
+                onChange={e => setNewReview({ ...newReview, rating: Number(e.target.value) })}
+                style={{ 
+                  width: '100%', 
+                  padding: '0.8rem 1rem', 
+                  borderRadius: '8px', 
+                  background: 'var(--bg-secondary)', 
+                  border: '1px solid var(--border-color)', 
+                  color: 'var(--text-primary)' 
+                }}
+              >
+                <option value="5">5 Stars</option>
+                <option value="4">4 Stars</option>
+                <option value="3">3 Stars</option>
+                <option value="2">2 Stars</option>
+                <option value="1">1 Star</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Review Text / Snippet *</label>
+              <textarea 
+                value={newReview.text} 
+                onChange={e => setNewReview({ ...newReview, text: e.target.value })} 
+                placeholder="Enter the client's testimonial or review text here..."
+                rows="4" 
+                required
+              ></textarea>
+            </div>
+
+            {newReview.type === 'link' && (
+              <div className="form-group">
+                <label>Google Review Link URL *</label>
+                <input 
+                  type="url" 
+                  value={newReview.url} 
+                  onChange={e => setNewReview({ ...newReview, url: e.target.value })} 
+                  placeholder="https://g.page/r/..." 
+                  required={newReview.type === 'link'} 
+                />
+              </div>
+            )}
+
+            <button type="submit" className="btn-primary" disabled={actionLoading}>
+              {actionLoading ? 'Saving...' : (editingReviewDocId ? 'Update Review' : 'Publish Review')}
+            </button>
+          </form>
+        )}
+
+        <div className="admin-project-list" style={{ marginTop: '2rem', marginBottom: '4rem' }}>
+          {reviews.length === 0 ? (
+            <p>No reviews added yet. Displaying defaults on the live website.</p>
+          ) : (
+            reviews.map(review => (
+              <div key={review.docId} className="admin-project-card glass-panel" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div className="admin-project-info" style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', width: '100%' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                    <h4 style={{ margin: 0 }}>{review.authorName}</h4>
+                    <span 
+                      style={{ 
+                        fontSize: '0.75rem', 
+                        background: 'rgba(255,255,255,0.08)', 
+                        padding: '2px 8px', 
+                        borderRadius: '10px',
+                        color: 'var(--text-secondary)'
+                      }}
+                    >
+                      {review.type === 'link' ? 'Google Link' : 'Written'}
+                    </span>
+                  </div>
+                  {review.company && <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{review.company}</span>}
+                  <p style={{ fontSize: '0.9rem', margin: '0.5rem 0 0 0', opacity: 0.8, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    "{review.text}"
+                  </p>
+                </div>
+                <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                  <button onClick={() => startEditReview(review)} className="btn-edit-inline" style={{ color: 'var(--text-secondary)', padding: '8px', cursor: 'pointer', background: 'transparent', border: 'none' }} title="Edit Review">
+                    <Edit2 size={18} />
+                  </button>
+                  <button onClick={() => handleDeleteReview(review.docId)} className="btn-delete" title="Delete Review">
                     <Trash2 size={18} />
                   </button>
                 </div>

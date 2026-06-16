@@ -1,6 +1,7 @@
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Target, Lightbulb, PenTool } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import taskarImg from '../assets/taskar.png';
 import './About.css';
 
 const About = () => {
@@ -19,8 +20,7 @@ const About = () => {
             transition={{ duration: 0.6 }}
             style={{ y: yOffset }}
           >
-            {/* Placeholder for about image - Using CSS styling instead of an actual image tag to prevent requests before image generation */}
-            <div className="about-img-placeholder"></div>
+            <img src={taskarImg} alt="Taskar exhibition" style={{ width: '100%', height: 'auto', display: 'block', borderRadius: '20px' }} />
           </motion.div>
           
           <motion.div 

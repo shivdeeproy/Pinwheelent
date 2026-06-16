@@ -7,6 +7,7 @@ import About from '../sections/About';
 import Services from '../sections/Services';
 import WorkPreview from '../sections/WorkPreview';
 import Clients from '../sections/Clients';
+import Testimonials from '../sections/Testimonials';
 import Contact from '../sections/Contact';
 
 const LandingPage = () => {
@@ -60,6 +61,7 @@ const LandingPage = () => {
       <Services />
       <WorkPreview />
       <Clients />
+      <Testimonials />
       <Contact />
 
       {/* Floating Back to Top Button */}

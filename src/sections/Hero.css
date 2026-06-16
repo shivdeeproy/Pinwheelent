@@ -94,7 +94,7 @@
 /* 3D Abstract Stall element */
 .hero-visual {
   position: relative;
-  height: 500px;
+  height: auto;
   perspective: 1000px;
 }
 
