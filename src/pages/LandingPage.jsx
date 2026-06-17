@@ -9,10 +9,12 @@ import WorkPreview from '../sections/WorkPreview';
 import Clients from '../sections/Clients';
 import Testimonials from '../sections/Testimonials';
 import Contact from '../sections/Contact';
+import { useSectionVisibility } from '../hooks/useSectionVisibility';
 
 const LandingPage = () => {
   const location = useLocation();
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const visibility = useSectionVisibility();
 
   // Handle hash scrolling on init/route change
   useEffect(() => {
@@ -59,9 +61,9 @@ const LandingPage = () => {
       <Hero />
       <About />
       <Services />
-      <WorkPreview />
-      <Clients />
-      <Testimonials />
+      {visibility.showWork && <WorkPreview />}
+      {visibility.showBrands && <Clients />}
+      {visibility.showReviews && <Testimonials />}
       <Contact />
 
       {/* Floating Back to Top Button */}

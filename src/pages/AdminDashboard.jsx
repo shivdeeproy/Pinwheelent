@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { auth, db, storage } from '../firebase';
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
-import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc, getDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, Plus, Trash2, Edit2, Image as ImageIcon, AlertTriangle } from 'lucide-react';
@@ -98,10 +98,18 @@ const AdminDashboard = () => {
   const [confirmModal, setConfirmModal] = useState(null); // { message, onConfirm }
 
   const [newProject, setNewProject] = useState({
-    title: '', category: '', challenge: '', solution: '', stats: '', features: ['']
+    title: '', category: '', challenge: '', solution: '', stats: '', features: [''],
+    stallDesign: '', dateLocation: '', description: '', showOnHomepage: true
   });
   const [imageFile, setImageFile] = useState(null);
   const [additionalImageFiles, setAdditionalImageFiles] = useState([]);
+
+  // Visibility settings states
+  const [visibilitySettings, setVisibilitySettings] = useState({
+    showWork: true,
+    showBrands: true,
+    showReviews: true
+  });
 
   const navigate = useNavigate();
 
@@ -116,7 +124,11 @@ const AdminDashboard = () => {
       stats: project.stats || '',
       features: project.features && project.features.length > 0 ? project.features : [''],
       image: project.image || '',
-      additionalImages: project.additionalImages || []
+      additionalImages: project.additionalImages || [],
+      stallDesign: project.stallDesign || '',
+      dateLocation: project.dateLocation || '',
+      description: project.description || '',
+      showOnHomepage: project.showOnHomepage !== false
     });
     setImageFile(null);
     setAdditionalImageFiles([]);
@@ -127,7 +139,7 @@ const AdminDashboard = () => {
     if (isAddingProject) {
       setIsAddingProject(false);
       setEditingProjectDocId(null);
-      setNewProject({ title: '', category: '', challenge: '', solution: '', stats: '', features: [''] });
+      setNewProject({ title: '', category: '', challenge: '', solution: '', stats: '', features: [''], stallDesign: '', dateLocation: '', description: '', showOnHomepage: true });
       setImageFile(null);
       setAdditionalImageFiles([]);
     } else {
@@ -164,6 +176,7 @@ const AdminDashboard = () => {
         fetchWorks();
         fetchClients();
         fetchReviews();
+        fetchVisibilitySettings();
       }
     });
     return () => { clearTimeout(timeoutId); unsubscribe(); };
@@ -444,6 +457,61 @@ const AdminDashboard = () => {
     });
   };
 
+  /* ── Fetch visibility settings (Firestore + localStorage fallback) ── */
+  const fetchVisibilitySettings = async () => {
+    if (isFirebaseAvailable()) {
+      try {
+        const querySnapshot = await withTimeout(getDocs(collection(db, 'settings')));
+        if (!querySnapshot.empty) {
+          const docMatch = querySnapshot.docs.find(d => d.id === 'sectionVisibility');
+          if (docMatch) {
+            const data = docMatch.data();
+            const loadedSettings = {
+              showWork: data.showWork !== false,
+              showBrands: data.showBrands !== false,
+              showReviews: data.showReviews !== false
+            };
+            setVisibilitySettings(loadedSettings);
+            localStorage.setItem('localSettings', JSON.stringify(loadedSettings));
+            return;
+          }
+        }
+      } catch (_) { /* Firebase unavailable */ }
+    }
+
+    const cached = localStorage.getItem('localSettings');
+    if (cached) setVisibilitySettings(JSON.parse(cached));
+  };
+
+  /* ── Save visibility settings ── */
+  const handleSaveVisibilitySettings = async (e) => {
+    e.preventDefault();
+    setActionLoading(true);
+    try {
+      let savedToFirebase = false;
+      if (isFirebaseAvailable()) {
+        try {
+          await withTimeout(setDoc(doc(db, 'settings', 'sectionVisibility'), visibilitySettings));
+          savedToFirebase = true;
+        } catch (err) {
+          console.error('Firebase save settings error:', err);
+        }
+      }
+
+      localStorage.setItem('localSettings', JSON.stringify(visibilitySettings));
+      
+      // Notify other components instantly of configuration change
+      window.dispatchEvent(new Event('visibilitySettingsChanged'));
+      
+      toast.success('Section visibility settings updated successfully!');
+    } catch (error) {
+      console.error('Error saving visibility settings:', error);
+      toast.error('Failed to save visibility settings');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   /* ── Login ── */
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -523,6 +591,10 @@ const AdminDashboard = () => {
         features: cleanFeatures,
         image: imageUrl,
         additionalImages: additionalImageUrls,
+        stallDesign: newProject.stallDesign || '',
+        dateLocation: newProject.dateLocation || '',
+        description: newProject.description || '',
+        showOnHomepage: newProject.showOnHomepage !== false,
         updatedAt: new Date().toISOString()
       };
 
@@ -561,13 +633,39 @@ const AdminDashboard = () => {
 
       setIsAddingProject(false);
       setEditingProjectDocId(null);
-      setNewProject({ title: '', category: '', challenge: '', solution: '', stats: '', features: [''] });
+      setNewProject({ title: '', category: '', challenge: '', solution: '', stats: '', features: [''], stallDesign: '', dateLocation: '', description: '', showOnHomepage: true });
       setImageFile(null);
       setAdditionalImageFiles([]);
       fetchWorks();
     } catch (error) {
       console.error('Error saving project:', error);
       toast.error('Failed to save project');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  /* ── Toggle Homepage Visibility ── */
+  const handleToggleFeatured = async (docId, isChecked) => {
+    setActionLoading(true);
+    try {
+      let savedToFirebase = false;
+      if (isFirebaseAvailable() && !docId.startsWith('local-')) {
+        try {
+          await withTimeout(updateDoc(doc(db, 'works', docId), { showOnHomepage: isChecked }));
+          savedToFirebase = true;
+        } catch (_) {}
+      }
+
+      const existing = JSON.parse(localStorage.getItem('localWorks') || '[]');
+      const updated = existing.map(w => w.docId === docId ? { ...w, showOnHomepage: isChecked } : w);
+      localStorage.setItem('localWorks', JSON.stringify(updated));
+
+      setWorks(prev => prev.map(w => w.docId === docId ? { ...w, showOnHomepage: isChecked } : w));
+      toast.success(isChecked ? 'Project added to homepage!' : 'Project removed from homepage!');
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to update homepage setting');
     } finally {
       setActionLoading(false);
     }
@@ -648,12 +746,23 @@ const AdminDashboard = () => {
             <h4>{editingProjectDocId ? 'Edit Project' : 'Create New Project'}</h4>
             <div className="form-row">
               <div className="form-group half">
-                <label>Project Title *</label>
-                <input type="text" value={newProject.title} onChange={e => setNewProject({...newProject, title: e.target.value})} placeholder="e.g. Neo Tech Expo 2024" required />
+                <label>Company Name *</label>
+                <input type="text" value={newProject.title} onChange={e => setNewProject({...newProject, title: e.target.value})} placeholder="e.g. Taskar Group" required />
               </div>
               <div className="form-group half">
-                <label>Category *</label>
-                <input type="text" value={newProject.category} onChange={e => setNewProject({...newProject, category: e.target.value})} placeholder="e.g. Technology & SaaS" required />
+                <label>Expo Name *</label>
+                <input type="text" value={newProject.category} onChange={e => setNewProject({...newProject, category: e.target.value})} placeholder="e.g. Neo Tech Expo 2024" required />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group half">
+                <label>Stall Design & Fabrication</label>
+                <input type="text" value={newProject.stallDesign} onChange={e => setNewProject({...newProject, stallDesign: e.target.value})} placeholder="e.g. 12m x 6m Island Double Deck Stall" />
+              </div>
+              <div className="form-group half">
+                <label>Date & Location</label>
+                <input type="text" value={newProject.dateLocation} onChange={e => setNewProject({...newProject, dateLocation: e.target.value})} placeholder="e.g. Jan 2024, Munich Germany" />
               </div>
             </div>
 
@@ -671,6 +780,36 @@ const AdminDashboard = () => {
                 <ImageIcon size={20} />
                 <input type="file" accept="image/*" multiple onChange={e => setAdditionalImageFiles(Array.from(e.target.files))} />
               </div>
+              {newProject.additionalImages && newProject.additionalImages.length > 0 && (
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '10px' }}>
+                  {newProject.additionalImages.map((imgUrl, idx) => (
+                    <div key={idx} style={{ position: 'relative', width: '80px', height: '80px' }}>
+                      <img src={imgUrl} alt="gallery preview" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          const updated = newProject.additionalImages.filter((_, i) => i !== idx);
+                          setNewProject({ ...newProject, additionalImages: updated });
+                        }}
+                        style={{ 
+                          position: 'absolute', top: '-5px', right: '-5px', 
+                          background: 'var(--accent-alt, #E33845)', color: '#fff', 
+                          border: 'none', borderRadius: '50%', width: '20px', height: '20px', 
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                          cursor: 'pointer', fontSize: '12px', fontWeight: 'bold'
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label>Description</label>
+              <textarea value={newProject.description} onChange={e => setNewProject({...newProject, description: e.target.value})} rows="4" placeholder="Enter general description about the project..."></textarea>
             </div>
 
             <div className="form-group">
@@ -703,6 +842,17 @@ const AdminDashboard = () => {
               <input type="text" value={newProject.stats} onChange={e => setNewProject({...newProject, stats: e.target.value})} placeholder="e.g. Won 'Best Large Stand Design' award" />
             </div>
 
+            <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1.5rem' }}>
+              <input 
+                type="checkbox" 
+                id="showOnHomepage" 
+                checked={newProject.showOnHomepage !== false} 
+                onChange={e => setNewProject({...newProject, showOnHomepage: e.target.checked})} 
+                style={{ width: 'auto', margin: 0, cursor: 'pointer' }}
+              />
+              <label htmlFor="showOnHomepage" style={{ margin: 0, color: 'var(--text-secondary)', cursor: 'pointer', userSelect: 'none' }}>Show on Homepage</label>
+            </div>
+
             <button type="submit" className="btn-primary" disabled={actionLoading}>
               {actionLoading ? 'Saving...' : (editingProjectDocId ? 'Update Project' : 'Publish Project')}
             </button>
@@ -711,21 +861,37 @@ const AdminDashboard = () => {
 
         <div className="admin-project-list">
           {works.map(work => (
-            <div key={work.docId} className="admin-project-card glass-panel">
-              <div className="admin-project-info">
+            <div key={work.docId} className="admin-project-card glass-panel" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+              <div className="admin-project-info" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 {work.image && <img src={work.image} alt={work.title} className="admin-thumb" />}
                 <div>
                   <h4>{work.title}</h4>
                   <span className="admin-category">{work.category}</span>
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button onClick={() => startEdit(work)} className="btn-edit-inline" style={{ color: 'var(--text-secondary)', padding: '8px', cursor: 'pointer', background: 'transparent', border: 'none' }} title="Edit Project">
-                  <Edit2 size={18} />
-                </button>
-                <button onClick={() => handleDelete(work.docId)} className="btn-delete" title="Delete Project">
-                  <Trash2 size={18} />
-                </button>
+              
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <input 
+                    type="checkbox" 
+                    id={`toggle-featured-${work.docId}`}
+                    checked={work.showOnHomepage !== false}
+                    onChange={(e) => handleToggleFeatured(work.docId, e.target.checked)}
+                    style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+                  />
+                  <label htmlFor={`toggle-featured-${work.docId}`} style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', cursor: 'pointer', userSelect: 'none', margin: 0 }}>
+                    Show on Homepage
+                  </label>
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button onClick={() => startEdit(work)} className="btn-edit-inline" style={{ color: 'var(--text-secondary)', padding: '8px', cursor: 'pointer', background: 'transparent', border: 'none' }} title="Edit Project">
+                    <Edit2 size={18} />
+                  </button>
+                  <button onClick={() => handleDelete(work.docId)} className="btn-delete" title="Delete Project">
+                    <Trash2 size={18} />
+                  </button>
+                </div>
               </div>
             </div>
           ))}
@@ -931,6 +1097,56 @@ const AdminDashboard = () => {
             ))
           )}
         </div>
+
+        {/* ── Website Controls & Section Visibility Settings ── */}
+        <hr style={{ border: 'none', borderTop: '1px solid var(--glass-border)', margin: '4rem 0' }} />
+
+        <div className="admin-actions" style={{ marginTop: '2rem' }}>
+          <h3>Website Section Controls</h3>
+        </div>
+
+        <form className="admin-add-form glass-panel" onSubmit={handleSaveVisibilitySettings} style={{ marginTop: '2rem', marginBottom: '4rem' }}>
+          <h4>Toggle Homepage Sections Visibility</h4>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+            Choose which sections you want to enable/disable on the live website. Toggling off a section will also hide its navigation link from the main menu automatically.
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', marginBottom: '2rem' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', cursor: 'pointer', fontSize: '1.1rem', color: 'var(--text-primary)' }}>
+              <input 
+                type="checkbox" 
+                checked={visibilitySettings.showWork} 
+                onChange={e => setVisibilitySettings({ ...visibilitySettings, showWork: e.target.checked })}
+                style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: 'var(--accent)' }}
+              />
+              Show Work / Portfolio Preview Section
+            </label>
+
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', cursor: 'pointer', fontSize: '1.1rem', color: 'var(--text-primary)' }}>
+              <input 
+                type="checkbox" 
+                checked={visibilitySettings.showBrands} 
+                onChange={e => setVisibilitySettings({ ...visibilitySettings, showBrands: e.target.checked })}
+                style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: 'var(--accent)' }}
+              />
+              Show Trusted Brands / Clients Logo Marquee
+            </label>
+
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', cursor: 'pointer', fontSize: '1.1rem', color: 'var(--text-primary)' }}>
+              <input 
+                type="checkbox" 
+                checked={visibilitySettings.showReviews} 
+                onChange={e => setVisibilitySettings({ ...visibilitySettings, showReviews: e.target.checked })}
+                style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: 'var(--accent)' }}
+              />
+              Show Client Reviews / Testimonials Carousel
+            </label>
+          </div>
+
+          <button type="submit" className="btn-primary" disabled={actionLoading}>
+            {actionLoading ? 'Saving Settings...' : 'Save Settings'}
+          </button>
+        </form>
       </main>
     </div>
   );

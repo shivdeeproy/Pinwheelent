@@ -71,12 +71,12 @@ const About = () => {
         >
           <div className="founder-avatar-container">
             <div className="founder-avatar-placeholder">
-              <span>SR</span>
+              <span>AK</span>
             </div>
           </div>
           <div className="founder-spotlight-content">
             <span className="founder-label">The Visionary</span>
-            <h3 className="founder-name">Shivdeep Roy</h3>
+            <h3 className="founder-name">Abhishek Kharat</h3>
             <p className="founder-title">Founder & Principal Designer</p>
             <p className="founder-quote">
               "We don't just build structures; we craft three-dimensional narratives that translate brand values into tangible, memorable exhibition experiences."

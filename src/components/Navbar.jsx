@@ -3,11 +3,13 @@ import { Menu, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import logo from '../assets/logo.png';
 import './Navbar.css';
+import { useSectionVisibility } from '../hooks/useSectionVisibility';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const visibility = useSectionVisibility();
 
   // Handle scroll effect for glassmorphism
   useEffect(() => {
@@ -43,7 +45,9 @@ const Navbar = () => {
           <Link to="/" onClick={() => handleNavClick('hero')} className="nav-link">Home</Link>
           <Link to="/#about" onClick={() => handleNavClick('about')} className="nav-link">About Us</Link>
           <Link to="/#services" onClick={() => handleNavClick('services')} className="nav-link">Services</Link>
-          <Link to="/#work" onClick={() => handleNavClick('work')} className="nav-link">Work</Link>
+          {visibility.showWork && (
+            <Link to="/#work" onClick={() => handleNavClick('work')} className="nav-link">Work</Link>
+          )}
           <Link to="/#contact" onClick={() => handleNavClick('contact')} className="nav-btn">Start Project</Link>
         </div>
 
@@ -59,7 +63,9 @@ const Navbar = () => {
           <Link to="/" onClick={() => handleNavClick('hero')} className="mobile-link">Home</Link>
           <Link to="/#about" onClick={() => handleNavClick('about')} className="mobile-link">About Us</Link>
           <Link to="/#services" onClick={() => handleNavClick('services')} className="mobile-link">Services</Link>
-          <Link to="/#work" onClick={() => handleNavClick('work')} className="mobile-link">Work</Link>
+          {visibility.showWork && (
+            <Link to="/#work" onClick={() => handleNavClick('work')} className="mobile-link">Work</Link>
+          )}
           <Link to="/#contact" onClick={() => handleNavClick('contact')} className="mobile-btn">Start Project</Link>
         </div>
       )}
