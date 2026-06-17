@@ -58,7 +58,7 @@ const Testimonials = () => {
       authorName: 'Abhishek Sharma',
       company: 'Taskar Group',
       rating: 5,
-      text: 'Pinwheelent did an exceptional job with our Stall construction. The attention to detail and professional execution exceeded our expectations.'
+      text: 'Pinwheel Enterprise did an exceptional job with our Stall construction. The attention to detail and professional execution exceeded our expectations.'
     },
     {
       docId: 'def-r2',
@@ -260,7 +260,7 @@ const Testimonials = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.3 }}
         >
-          <p>Have you collaborated with Pinwheelent on a stall design or exhibition?</p>
+          <p>Have you collaborated with Pinwheel Enterprise on a stall design or exhibition?</p>
           <a
             href="https://search.google.com/local/writereview?placeid=YOUR_PLACE_ID_HERE"
             target="_blank"

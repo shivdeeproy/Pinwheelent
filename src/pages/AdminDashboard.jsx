@@ -726,7 +726,7 @@ const AdminDashboard = () => {
 
       <header className="admin-header glass-panel">
         <div className="container">
-          <h2>Pinwheelent CMS</h2>
+          <h2>Pinwheel Enterprise CMS</h2>
           <button onClick={handleLogout} className="btn-logout">
             <LogOut size={16} /> Logout
           </button>

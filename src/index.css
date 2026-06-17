@@ -101,7 +101,7 @@ button {
 /* Floating Back to Top Button */
 .back-to-top {
   position: fixed;
-  bottom: 2.5rem;
+  bottom: 6.5rem;
   right: 2.5rem;
   width: 50px;
   height: 50px;
@@ -124,6 +124,31 @@ button {
   border-color: var(--text-primary);
   background-color: rgba(255, 255, 255, 0.05);
   transform: translateY(-4px);
+}
+
+/* Floating WhatsApp Button */
+.whatsapp-float-btn {
+  position: fixed;
+  bottom: 2.5rem;
+  right: 2.5rem;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #25D366;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  z-index: 99;
+  outline: none;
+  transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.whatsapp-float-btn:hover {
+  transform: translateY(-4px) scale(1.05);
+  background-color: #20ba5a;
+  box-shadow: 0 15px 35px rgba(37, 211, 102, 0.3);
 }
 
 /* Global Scroll Progress Bar */

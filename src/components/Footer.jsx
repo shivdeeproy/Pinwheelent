@@ -38,13 +38,17 @@ const Footer = () => {
                 <Mail size={18} />
                 <span>hello@pinwheelent.in</span>
               </li>
-              <li>
-                <Phone size={18} />
-                <span>+91 98765 43210</span>
+              <li style={{ alignItems: 'flex-start' }}>
+                <Phone size={18} style={{ marginTop: '2px' }} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <a href="tel:+919892973931" style={{ color: 'inherit' }}>+91 9892 973931</a>
+                  <a href="tel:+917021898598" style={{ color: 'inherit' }}>+91 7021 898598</a>
+                  <a href="tel:+919967590663" style={{ color: 'inherit' }}>+91 9967 590663</a>
+                </div>
               </li>
-              <li>
-                <MapPin size={18} />
-                <span>123 Exhibition Road, New Delhi, India</span>
+              <li style={{ alignItems: 'flex-start' }}>
+                <MapPin size={18} style={{ marginTop: '2px' }} />
+                <span>Office No. 6, Behind Bldg. No. 3, Sai Baba Nagar, Near Ganesh Mandir, Ghatkopar (E), Mumbai 400075</span>
               </li>
             </ul>
           </div>
@@ -52,7 +56,7 @@ const Footer = () => {
         </div>
         
         <div className="footer-bottom">
-          <p>&copy; {new Date().getFullYear()} Pinwheelent. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Pinwheel Enterprise. All rights reserved.</p>
           <div className="footer-legal">
             <Link to="/privacy">Privacy Policy</Link>
             <Link to="/terms">Terms of Service</Link>

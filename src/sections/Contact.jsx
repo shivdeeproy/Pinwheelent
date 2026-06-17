@@ -40,7 +40,7 @@ const Contact = () => {
         body: JSON.stringify({
           access_key: import.meta.env.VITE_WEB3FORMS_ACCESS_KEY || "YOUR_ACCESS_KEY_HERE",
           subject: `New Contact Form Submission from ${formData.name}`,
-          from_name: "Pinwheelent Website",
+          from_name: "Pinwheel Enterprise Website",
           ...formData
         })
       });
@@ -92,11 +92,15 @@ const Contact = () => {
             </div>
             <div className="detail-item">
               <span>Phone</span>
-              <a href="tel:+919876543210">+91 98765 43210</a>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <a href="tel:+919892973931">+91 9892 973931</a>
+                <a href="tel:+917021898598">+91 7021 898598</a>
+                <a href="tel:+919967590663">+91 9967 590663</a>
+              </div>
             </div>
             <div className="detail-item">
               <span>Studio</span>
-              <p>123 Exhibition Road, Industrial Area Phase 1,<br/>New Delhi, India 110020</p>
+              <p>Office No. 6, Behind Bldg. No. 3, Sai Baba Nagar,<br/>Near Ganesh Mandir, Ghatkopar (E), Mumbai 400075</p>
             </div>
           </div>
         </motion.div>

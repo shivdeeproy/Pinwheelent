@@ -69,7 +69,7 @@ const FounderDetailPage = () => {
             <div className="founder-detailed-bio">
               <h3>The Journey & Philosophy</h3>
               <p>
-                Abhishek Kharat is a seasoned space curator who bridges the gap between artistic installations and strategic marketing. With over a decade of hands-on expertise in architectural design, material science, and expo fabrication, he oversees every design layout created at Pinwheelent.
+                Abhishek Kharat is a seasoned space curator who bridges the gap between artistic installations and strategic marketing. With over a decade of hands-on expertise in architectural design, material science, and expo fabrication, he oversees every design layout created at Pinwheel Enterprise.
               </p>
               <p>
                 His philosophy is rooted in structural minimalism and interactive experience design. By utilizing smart lighting, high-quality sustainable materials, and precise ergonomics, he aims to elevate every client's spatial layout into an active engagement zone.
@@ -82,7 +82,7 @@ const FounderDetailPage = () => {
                 <p>Schedule a personal design consultation with Abhishek Kharat.</p>
               </div>
               <div className="founder-cta-actions">
-                <a href="mailto:contact@pinwheelent.in" className="cta-email-btn">
+                <a href="mailto:hello@pinwheelent.in" className="cta-email-btn">
                   <Mail size={18} /> Email Abhishek
                 </a>
                 <a href="/#contact" className="cta-schedule-btn">

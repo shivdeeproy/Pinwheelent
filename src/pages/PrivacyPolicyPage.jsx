@@ -26,7 +26,7 @@ const PrivacyPolicyPage = () => {
           transition={{ duration: 0.6 }}
         >
           <h1>Privacy Policy</h1>
-          <p className="last-updated">Last Updated: May 30, 2026</p>
+          <p className="last-updated">Last Updated: June 17, 2026</p>
         </motion.div>
 
         <motion.div 

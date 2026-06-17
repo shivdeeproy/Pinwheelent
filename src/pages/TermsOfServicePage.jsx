@@ -26,7 +26,7 @@ const TermsOfServicePage = () => {
           transition={{ duration: 0.6 }}
         >
           <h1>Terms of Service</h1>
-          <p className="last-updated">Last Updated: May 30, 2026</p>
+          <p className="last-updated">Last Updated: June 17, 2026</p>
         </motion.div>
 
         <motion.div 
@@ -73,7 +73,7 @@ const TermsOfServicePage = () => {
           <section>
             <h2>6. Governing Law</h2>
             <p>
-              These Terms of Service and any relationships governed by them shall be interpreted, construed, and enforced in accordance with the laws of India, under the jurisdiction of courts in New Delhi.
+              These Terms of Service and any relationships governed by them shall be interpreted, construed, and enforced in accordance with the laws of India, under the jurisdiction of courts in Mumbai.
             </p>
           </section>
         </motion.div>

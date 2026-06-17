@@ -32,7 +32,7 @@ const About = () => {
           >
             <h2 className="section-title">Crafting Spatial Experiences</h2>
             <p className="about-desc">
-              At Pinwheelent, we believe that a physical space should be more than just square footage—it should be a three-dimensional embodiment of your brand's ethos. We specialize in conceptualizing and fabricating premium exhibition stalls that ensure you stand out in crowded expos.
+              At Pinwheel Enterprise, we believe that a physical space should be more than just square footage—it should be a three-dimensional embodiment of your brand's ethos. We specialize in conceptualizing and fabricating premium exhibition stalls that ensure you stand out in crowded expos.
             </p>
             
             <div className="about-features">
