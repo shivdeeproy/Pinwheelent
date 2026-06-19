@@ -265,7 +265,7 @@ const Testimonials = () => {
           >
             <p>Have you collaborated with Pinwheel Enterprise on a stall design or exhibition?</p>
             <a
-              href="https://search.google.com/local/writereview?placeid=YOUR_PLACE_ID_HERE"
+              href={visibility.googleReviewUrl || "https://search.google.com/local/writereview?placeid=YOUR_PLACE_ID_HERE"}
               target="_blank"
               rel="noopener noreferrer"
               className="cta-google-btn"

@@ -134,7 +134,8 @@ const AdminDashboard = () => {
     showWork: true,
     showBrands: true,
     showReviews: true,
-    showCollaborated: true
+    showCollaborated: true,
+    googleReviewUrl: ''
   });
 
   const navigate = useNavigate();
@@ -490,7 +491,8 @@ const AdminDashboard = () => {
               showWork: data.showWork !== false,
               showBrands: data.showBrands !== false,
               showReviews: data.showReviews !== false,
-              showCollaborated: data.showCollaborated !== false
+              showCollaborated: data.showCollaborated !== false,
+              googleReviewUrl: data.googleReviewUrl || ''
             };
             setVisibilitySettings(loadedSettings);
             localStorage.setItem('localSettings', JSON.stringify(loadedSettings));
@@ -1166,6 +1168,23 @@ const AdminDashboard = () => {
               />
               Show Google Review CTA Box ("Have you collaborated...?")
             </label>
+
+            {visibilitySettings.showCollaborated && (
+              <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem', paddingLeft: '2rem' }}>
+                <label style={{ fontSize: '0.95rem', color: 'var(--text-secondary)' }}>Google Review Link / URL</label>
+                <input 
+                  type="url" 
+                  value={visibilitySettings.googleReviewUrl}
+                  onChange={e => setVisibilitySettings({ ...visibilitySettings, googleReviewUrl: e.target.value })}
+                  placeholder="https://search.google.com/local/writereview?placeid=..."
+                  className="form-control"
+                  style={{ width: '100%', maxWidth: '500px' }}
+                />
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                  Paste your Google Place review link or short business link (e.g. <code>https://g.page/r/.../review</code>)
+                </span>
+              </div>
+            )}
           </div>
 
           <button type="submit" className="btn-primary" disabled={actionLoading}>

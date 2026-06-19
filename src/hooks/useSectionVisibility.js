@@ -27,7 +27,8 @@ export const useSectionVisibility = () => {
       showWork: true,
       showBrands: true,
       showReviews: true,
-      showCollaborated: true
+      showCollaborated: true,
+      googleReviewUrl: ''
     };
   });
 
@@ -43,7 +44,8 @@ export const useSectionVisibility = () => {
               showWork: data.showWork !== false,
               showBrands: data.showBrands !== false,
               showReviews: data.showReviews !== false,
-              showCollaborated: data.showCollaborated !== false
+              showCollaborated: data.showCollaborated !== false,
+              googleReviewUrl: data.googleReviewUrl || ''
             };
             setVisibility(loadedSettings);
             localStorage.setItem('localSettings', JSON.stringify(loadedSettings));
