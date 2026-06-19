@@ -20,9 +20,8 @@ if (empty($_FILES)) {
     exit;
 }
 
-// Get the first uploaded file key
-$fileKey = array_key_first($_FILES);
-$file = $_FILES[$fileKey];
+// Get the first uploaded file (compatible with all PHP versions)
+$file = reset($_FILES);
 
 if ($file['error'] !== UPLOAD_ERR_OK) {
     echo json_encode(['success' => false, 'error' => 'Upload error code: ' . $file['error']]);
