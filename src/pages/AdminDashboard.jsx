@@ -133,7 +133,8 @@ const AdminDashboard = () => {
   const [visibilitySettings, setVisibilitySettings] = useState({
     showWork: true,
     showBrands: true,
-    showReviews: true
+    showReviews: true,
+    showCollaborated: true
   });
 
   const navigate = useNavigate();
@@ -488,7 +489,8 @@ const AdminDashboard = () => {
             const loadedSettings = {
               showWork: data.showWork !== false,
               showBrands: data.showBrands !== false,
-              showReviews: data.showReviews !== false
+              showReviews: data.showReviews !== false,
+              showCollaborated: data.showCollaborated !== false
             };
             setVisibilitySettings(loadedSettings);
             localStorage.setItem('localSettings', JSON.stringify(loadedSettings));
@@ -1153,6 +1155,16 @@ const AdminDashboard = () => {
                 style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: 'var(--accent)' }}
               />
               Show Client Reviews / Testimonials Carousel
+            </label>
+
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', cursor: 'pointer', fontSize: '1.1rem', color: 'var(--text-primary)' }}>
+              <input 
+                type="checkbox" 
+                checked={visibilitySettings.showCollaborated} 
+                onChange={e => setVisibilitySettings({ ...visibilitySettings, showCollaborated: e.target.checked })}
+                style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: 'var(--accent)' }}
+              />
+              Show Google Review CTA Box ("Have you collaborated...?")
             </label>
           </div>
 

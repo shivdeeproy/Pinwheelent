@@ -26,7 +26,8 @@ export const useSectionVisibility = () => {
     return {
       showWork: true,
       showBrands: true,
-      showReviews: true
+      showReviews: true,
+      showCollaborated: true
     };
   });
 
@@ -41,7 +42,8 @@ export const useSectionVisibility = () => {
             const loadedSettings = {
               showWork: data.showWork !== false,
               showBrands: data.showBrands !== false,
-              showReviews: data.showReviews !== false
+              showReviews: data.showReviews !== false,
+              showCollaborated: data.showCollaborated !== false
             };
             setVisibility(loadedSettings);
             localStorage.setItem('localSettings', JSON.stringify(loadedSettings));
