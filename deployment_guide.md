@@ -1,8 +1,8 @@
 ## 🛠️ Prerequisite 1: Main Domain Router Setup
-You must configure the root `.htaccess` in your primary `public_html` directory to forward traffic to the built subfolder (`public_html/pinwheel/dist`).
+You must configure the root `.htaccess` in your primary `public_html` directory to forward traffic to the built subfolder (`public_html/pinwheel/dist`) while correctly serving uploaded images from the server.
 
 1. Open **cPanel File Manager** and go to **`public_html/`**.
-2. Create or edit the file named **`.htaccess`** and paste this code:
+2. Create or edit the file named **`.htaccess`** (enable "Show Hidden Files" in cPanel settings if not visible) and paste this code:
 
 ```apache
 <FilesMatch "\.(html|htm)$">
@@ -18,14 +18,27 @@ You must configure the root `.htaccess` in your primary `public_html` directory 
 RewriteEngine On
 RewriteBase /
 
-# Forward all incoming traffic to the pinwheel/dist folder
+# 1. Route requests for /uploads/ directly to the permanent uploads folder
+RewriteRule ^uploads/(.*)$ pinwheel/uploads/$1 [L]
+
+# 2. Forward all other traffic to the pinwheel/dist folder
+RewriteCond %{REQUEST_URI} !^/uploads/
 RewriteCond %{REQUEST_URI} !^/pinwheel/dist/
 RewriteRule ^(.*)$ pinwheel/dist/$1 [L]
 ```
 
 ---
 
-## 🛠️ Prerequisite 2: React Routing Fallback Setup (Preventing 404 Wipes)
+## 🛠️ Prerequisite 2: Create Server Upload Directory
+Images are saved directly on your cPanel server rather than Firebase Storage to keep your hosting 100% free.
+
+1. Go to **cPanel File Manager** -> **`public_html/pinwheel/`**.
+2. Create a folder named **`uploads`** (resulting path: `public_html/pinwheel/uploads/`).
+3. Right-click the folder, click **Change Permissions**, and set it to **`0755`** (Owner: Read/Write/Execute, Group/World: Read/Execute) so the PHP upload script is allowed to save optimized files.
+
+---
+
+## 🛠️ Prerequisite 3: React Routing Fallback Setup (Preventing 404 Wipes)
 To ensure sub-routes like `/admin` work without throwing 404 errors, and **to prevent the build tool from deleting your router configuration on every build**, you must place the fallback `.htaccess` file inside your source code's **`public/`** folder.
 
 1. Go to your project repository on cPanel (or local workspace) and open the **`public/`** folder (`public_html/pinwheel/public/`).

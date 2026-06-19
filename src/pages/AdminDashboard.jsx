@@ -212,12 +212,10 @@ const AdminDashboard = () => {
     if (isFirebaseAvailable()) {
       try {
         const querySnapshot = await withTimeout(getDocs(collection(db, 'works')));
-        if (!querySnapshot.empty) {
-          const worksData = querySnapshot.docs.map(d => ({ docId: d.id, ...d.data() }));
-          setWorks(worksData);
-          localStorage.setItem('localWorks', JSON.stringify(worksData));
-          return;
-        }
+        const worksData = querySnapshot.docs.map(d => ({ docId: d.id, ...d.data() }));
+        setWorks(worksData);
+        localStorage.setItem('localWorks', JSON.stringify(worksData));
+        return;
       } catch (_) { /* Firebase unavailable */ }
     }
 
@@ -230,12 +228,10 @@ const AdminDashboard = () => {
     if (isFirebaseAvailable()) {
       try {
         const querySnapshot = await withTimeout(getDocs(collection(db, 'clients')));
-        if (!querySnapshot.empty) {
-          const clientsData = querySnapshot.docs.map(d => ({ docId: d.id, ...d.data() }));
-          setClients(clientsData);
-          localStorage.setItem('localClients', JSON.stringify(clientsData));
-          return;
-        }
+        const clientsData = querySnapshot.docs.map(d => ({ docId: d.id, ...d.data() }));
+        setClients(clientsData);
+        localStorage.setItem('localClients', JSON.stringify(clientsData));
+        return;
       } catch (_) { /* Firebase unavailable */ }
     }
 
