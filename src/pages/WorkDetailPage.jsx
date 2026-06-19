@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ArrowLeft } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { db } from '../firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import './WorkDetailPage.css';
@@ -20,6 +20,7 @@ const WorkDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [nextProject, setNextProject] = useState(null);
   const [prevProject, setPrevProject] = useState(null);
+  const [lightboxIndex, setLightboxIndex] = useState(null);
 
   // Scroll to top on load
   useEffect(() => {
@@ -67,6 +68,25 @@ const WorkDetailPage = () => {
     fetchProject();
   }, [id]);
 
+  const allImages = project
+    ? [project.image, ...(project.additionalImages || [])].filter(Boolean)
+    : [];
+
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setLightboxIndex(null);
+      if (e.key === 'ArrowLeft') {
+        setLightboxIndex((prev) => (prev > 0 ? prev - 1 : allImages.length - 1));
+      }
+      if (e.key === 'ArrowRight') {
+        setLightboxIndex((prev) => (prev < allImages.length - 1 ? prev + 1 : 0));
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [lightboxIndex, allImages.length]);
+
   if (loading) {
     return (
       <div className="container" style={{ paddingTop: '120px', minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -107,6 +127,7 @@ const WorkDetailPage = () => {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
+          onClick={() => allImages.length > 0 && setLightboxIndex(0)}
         >
           <div className="work-hero-placeholder" style={{ background: 'transparent' }}>
             {project.image && (
@@ -145,7 +166,12 @@ const WorkDetailPage = () => {
             {project.additionalImages && project.additionalImages.length > 0 && (
               <div className="work-gallery">
                 {project.additionalImages.map((imgUrl, idx) => (
-                  <div key={idx} className="gallery-placeholder glass-panel" style={{ background: 'transparent', padding: 0, overflow: 'hidden' }}>
+                  <div 
+                    key={idx} 
+                    className="gallery-placeholder glass-panel" 
+                    style={{ background: 'transparent', padding: 0, overflow: 'hidden' }}
+                    onClick={() => setLightboxIndex(idx + 1)}
+                  >
                     <img src={imgUrl} alt={`${project.title} gallery ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
                 ))}
@@ -211,6 +237,65 @@ const WorkDetailPage = () => {
           ) : <div />}
         </div>
       </div>
+
+      {/* Lightbox Overlay */}
+      <AnimatePresence>
+        {lightboxIndex !== null && (
+          <motion.div 
+            className="lightbox-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setLightboxIndex(null)}
+          >
+            <button className="lightbox-close" onClick={() => setLightboxIndex(null)} aria-label="Close lightbox">
+              <X size={28} />
+            </button>
+            
+            {allImages.length > 1 && (
+              <button 
+                className="lightbox-nav lightbox-prev" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLightboxIndex((prev) => (prev > 0 ? prev - 1 : allImages.length - 1));
+                }}
+                aria-label="Previous image"
+              >
+                <ChevronLeft size={36} />
+              </button>
+            )}
+
+            <motion.div 
+              className="lightbox-content" 
+              onClick={(e) => e.stopPropagation()}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            >
+              <img src={allImages[lightboxIndex]} alt={`Zoomed project image ${lightboxIndex + 1}`} className="lightbox-img" />
+              {allImages.length > 1 && (
+                <div className="lightbox-counter">
+                  {lightboxIndex + 1} / {allImages.length}
+                </div>
+              )}
+            </motion.div>
+
+            {allImages.length > 1 && (
+              <button 
+                className="lightbox-nav lightbox-next" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLightboxIndex((prev) => (prev < allImages.length - 1 ? prev + 1 : 0));
+                }}
+                aria-label="Next image"
+              >
+                <ChevronRight size={36} />
+              </button>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
