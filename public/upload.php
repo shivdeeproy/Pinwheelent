@@ -53,9 +53,9 @@ if (!in_array($extension, $allowedExtensions)) {
 }
 
 // 4. Create target directory
-// The script will live in `dist/upload.php` or `public/upload.php`
-// We want to save uploads outside `dist/` in `uploads/`
-$targetDir = __DIR__ . '/../uploads/';
+// The script lives in `dist/upload.php`
+// We want to save uploads outside `dist/` and `pinwheel/` in `public_html/uploads/`
+$targetDir = __DIR__ . '/../../uploads/';
 if (!file_exists($targetDir)) {
     mkdir($targetDir, 0755, true);
 }
