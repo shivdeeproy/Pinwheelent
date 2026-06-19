@@ -18,10 +18,7 @@ You must configure the root `.htaccess` in your primary `public_html` directory 
 RewriteEngine On
 RewriteBase /
 
-# 1. Route requests for /uploads/ directly to the permanent uploads folder
-RewriteRule ^uploads/(.*)$ pinwheel/uploads/$1 [L]
-
-# 2. Forward all other traffic to the pinwheel/dist folder
+# 1. Forward all other traffic to the pinwheel/dist folder (excluding /uploads/ directory)
 RewriteCond %{REQUEST_URI} !^/uploads/
 RewriteCond %{REQUEST_URI} !^/pinwheel/dist/
 RewriteRule ^(.*)$ pinwheel/dist/$1 [L]
@@ -32,8 +29,8 @@ RewriteRule ^(.*)$ pinwheel/dist/$1 [L]
 ## 🛠️ Prerequisite 2: Create Server Upload Directory
 Images are saved directly on your cPanel server rather than Firebase Storage to keep your hosting 100% free.
 
-1. Go to **cPanel File Manager** -> **`public_html/pinwheel/`**.
-2. Create a folder named **`uploads`** (resulting path: `public_html/pinwheel/uploads/`).
+1. Go to **cPanel File Manager** -> **`public_html/`**.
+2. Create a folder named **`uploads`** (resulting path: `public_html/uploads/`).
 3. Right-click the folder, click **Change Permissions**, and set it to **`0755`** (Owner: Read/Write/Execute, Group/World: Read/Execute) so the PHP upload script is allowed to save optimized files.
 
 ---
