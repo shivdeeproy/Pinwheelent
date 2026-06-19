@@ -1,5 +1,5 @@
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { Layers, Cuboid, MonitorPlay, Zap, Contact, BookOpen, Image, Gift } from 'lucide-react';
+import { Layers, Cuboid, MonitorPlay, Store, Contact, BookOpen, Image, Gift } from 'lucide-react';
 import './Services.css';
 
 const services = [
@@ -19,9 +19,9 @@ const services = [
     desc: 'Integration of screens, AR/VR, and touchpoints to keep your audience engaged and immersed.'
   },
   {
-    icon: <Zap size={32} />,
-    title: 'Turnkey Execution',
-    desc: 'End-to-end project management from initial 3D rendering to on-site installation and dismantling.'
+    icon: <Store size={32} />,
+    title: 'Mall Activities, Stages & Kiosks',
+    desc: 'Professional stage and event setups, engaging mall activations, and bespoke design-to-installation of indoor brand kiosks.'
   },
   {
     icon: <Contact size={32} />,
