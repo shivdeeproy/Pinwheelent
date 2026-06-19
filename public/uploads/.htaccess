@@ -1,0 +1,8 @@
+# Disable script execution inside uploads directory
+<Files *>
+    SetHandler default-handler
+</Files>
+
+# Disable PHP processing
+RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .php8 .phps
+RemoveType .php .phtml .php3 .php4 .php5 .php7 .php8 .phps

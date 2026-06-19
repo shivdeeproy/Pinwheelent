@@ -19,6 +19,31 @@ const withTimeout = (promise, ms = FIRESTORE_TIMEOUT_MS) =>
   ]);
 const isFirebaseAvailable = () => navigator.onLine;
 
+/* ─── Local Server File Upload Helper ───────────────────────── */
+const uploadFile = async (file) => {
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return URL.createObjectURL(file);
+  }
+  
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  const response = await fetch('/upload.php', {
+    method: 'POST',
+    body: formData
+  });
+  
+  if (!response.ok) {
+    throw new Error('Upload failed on server');
+  }
+  
+  const result = await response.json();
+  if (!result.success) {
+    throw new Error(result.error || 'Server upload failed');
+  }
+  return result.url;
+};
+
 /* ─── Custom Confirm Modal ───────────────────────────────────── */
 const ConfirmModal = ({ message, onConfirm, onCancel }) => (
   <div
@@ -238,11 +263,9 @@ const AdminDashboard = () => {
 
       if (clientLogoFile) {
         try {
-          if (!isFirebaseAvailable()) throw new Error('Offline');
-          const logoRef = ref(storage, `clients/${Date.now()}_${clientLogoFile.name}`);
-          await withTimeout(uploadBytes(logoRef, clientLogoFile));
-          logoUrl = await withTimeout(getDownloadURL(logoRef));
-        } catch (_) {
+          logoUrl = await uploadFile(clientLogoFile);
+        } catch (err) {
+          console.error('Client logo upload error:', err);
           logoUrl = URL.createObjectURL(clientLogoFile);
         }
       }
@@ -556,26 +579,20 @@ const AdminDashboard = () => {
 
       if (imageFile) {
         try {
-          if (!isFirebaseAvailable()) throw new Error('Offline');
-          const imageRef = ref(storage, `works/${Date.now()}_hero_${imageFile.name}`);
-          await withTimeout(uploadBytes(imageRef, imageFile));
-          imageUrl = await withTimeout(getDownloadURL(imageRef));
-        } catch (_) {
+          imageUrl = await uploadFile(imageFile);
+        } catch (err) {
+          console.error('Hero image upload error:', err);
           imageUrl = URL.createObjectURL(imageFile);
         }
       }
 
       if (additionalImageFiles.length > 0) {
-        try {
-          if (!isFirebaseAvailable()) throw new Error('Offline');
-          for (let i = 0; i < additionalImageFiles.length; i++) {
-            const file = additionalImageFiles[i];
-            const fileRef = ref(storage, `works/additional/${Date.now()}_${i}_${file.name}`);
-            await withTimeout(uploadBytes(fileRef, file));
-            additionalImageUrls.push(await withTimeout(getDownloadURL(fileRef)));
-          }
-        } catch (_) {
-          for (let i = 0; i < additionalImageFiles.length; i++) {
+        for (let i = 0; i < additionalImageFiles.length; i++) {
+          try {
+            const url = await uploadFile(additionalImageFiles[i]);
+            additionalImageUrls.push(url);
+          } catch (err) {
+            console.error('Additional image upload error:', err);
             additionalImageUrls.push(URL.createObjectURL(additionalImageFiles[i]));
           }
         }
